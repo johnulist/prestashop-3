@@ -241,7 +241,7 @@ class BpostShm extends CarrierModule
 	public function uninstall()
 	{
 		// Do not include into function return because tab might already be uninstalled
-		$this->uninstallModuleTab('AdminOrdersBpost');
+		$this->uninstallModuleTab('AdminBpostOrders');
 
 		$return = true;
 
@@ -845,7 +845,7 @@ ADD COLUMN
 					Configuration::updateValue('BPOST_LABEL_TT_FREQUENCY', (int)$label_tt_frequency);
 				*/
 				$this->installModuleTab(
-					'AdminOrdersBpost',
+					'AdminBpostOrders',
 					'bpost',
 					Service::isPrestashopFresherThan14() ? Tab::getIdFromClassName('AdminParentOrders') : Tab::getIdFromClassName('AdminOrders')
 				);
@@ -856,7 +856,7 @@ ADD COLUMN
 				$label_tt_integration = false;
 				$label_tt_update_on_open = false;
 
-				$this->uninstallModuleTab('AdminOrdersBpost');
+				$this->uninstallModuleTab('AdminBpostOrders');
 			}
 
 			if (Configuration::get('BPOST_LABEL_RETOUR_LABEL') !== $label_retour_label && is_numeric($label_retour_label))

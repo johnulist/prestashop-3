@@ -14,14 +14,14 @@ if (!defined('_PS_VERSION_'))
 
 if (_PS_VERSION_ >= 1.5)
 {
-	require_once(_PS_MODULE_DIR_.'bpostshm/controllers/admin/AdminOrdersBpost.php');
+	require_once(_PS_MODULE_DIR_.'bpostshm/controllers/admin/AdminBpostOrders.php');
 	return;
 }
 
 require_once(_PS_MODULE_DIR_.'bpostshm/bpostshm.php');
 require_once(_PS_MODULE_DIR_.'bpostshm/classes/Service.php');
 
-class AdminOrdersBpost extends AdminTab
+class AdminBpostOrders extends AdminTab
 {
 	public $statuses = array(
 		'OPEN',
@@ -48,7 +48,7 @@ class AdminOrdersBpost extends AdminTab
 	public function __construct()
 	{
 		$this->table = 'order_label';
-		$this->className = 'AdminOrdersBpost';
+		$this->className = 'AdminBpostOrders';
 		$this->lang = false;
 		$this->explicitSelect = true;
 		$this->deleted = false;
@@ -976,7 +976,7 @@ class AdminOrdersBpost extends AdminTab
 		if (empty($reference))
 			return;
 
-		$controller = new AdminOrdersBpost();
+		$controller = new AdminBpostOrders();
 
 		return '<img class="print" src="'._MODULE_DIR_.'bpostshm/views/img/icons/print.png" data-labels="'
 			.Tools::safeOutput(self::$current_index.'&reference='.$reference.'&printLabels'.$controller->table.'&token='.$controller->token).'"/>';
@@ -1019,7 +1019,7 @@ class AdminOrdersBpost extends AdminTab
 	// 	if (empty($reference))
 	// 		return;
 
-	// 	$controller = new AdminOrdersBpost();
+	// 	$controller = new AdminBpostOrders();
 
 		/*$ps_order = new Order((int)Tools::substr($reference, 7));
 		$treated_status = Configuration::get('BPOST_ORDER_STATE_TREATED_'.(is_null($this->context->shop->id) ? '1' : $this->context->shop->id));
