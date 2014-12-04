@@ -16,9 +16,6 @@ require_once(_PS_MODULE_DIR_.'bpostshm/classes/Service.php');
 
 class BpostShmLightboxModuleFrontController extends ModuleFrontController
 {
-	const GEO6_PARTNER = 999999;
-	const GEO6_APP_ID = '';
-
 	public function initContent()
 	{
 		$shipping_method = Tools::getValue('shipping_method');
@@ -35,8 +32,8 @@ class BpostShmLightboxModuleFrontController extends ModuleFrontController
 		$service = new Service($this->context);
 
 		// Reset selected bpost service point
-		$this->context->cart->service_point_id = 0;
-		$this->context->cart->update();
+		$cart_bpost = PsCartBpost::getByPsCartID((int)$this->context->cart->id);
+		$cart_bpost->reset();
 
 		// Looking for AJAX requests
 		if (Tools::getValue('get_nearest_service_points'))
@@ -55,15 +52,18 @@ class BpostShmLightboxModuleFrontController extends ModuleFrontController
 				$service->getNearestServicePoint($search_params, $shipping_method);
 			$this->jsonEncode($service_points);
 		}
-		elseif (Tools::getValue('get_service_point_hours') && $service_point_id = (int)Tools::getValue('service_point_id'))
+		elseif (Tools::getValue('get_service_point_hours'))
 		{
-			$service_point_hours = $service->getServicePointHours($service_point_id, $shipping_method);
+			$service_point_id = (int)Tools::getValue('service_point_id');
+			$sp_type = (int)Tools::getValue('sp_type');
+			$service_point_hours = $service->getServicePointHours($service_point_id, $sp_type);
 			$this->jsonEncode($service_point_hours);
 		}
-		elseif (Tools::getValue('set_service_point') && $service_point_id = (int)Tools::getValue('service_point_id'))
+		elseif (Tools::getValue('set_service_point'))
 		{
-			$this->context->cart->service_point_id = $service_point_id;
-			$this->jsonEncode($this->context->cart->update());
+			$service_point_id = (int)Tools::getValue('service_point_id');
+			$sp_type = (int)Tools::getValue('sp_type');
+			$this->jsonEncode($cart_bpost->setServicePoint($service_point_id, $sp_type));
 		}
 		elseif (Tools::getValue('get_bpack247_member'))
 		{
@@ -113,7 +113,7 @@ class BpostShmLightboxModuleFrontController extends ModuleFrontController
 		}
 
 		// Building display page
-		self::$smarty->assign('version', (Service::isPrestashop16() ? 1.6 : (Service::isPrestashopFresherThan14() ? 1.5 : 1.4)), true);
+		self::$smarty->assign('version', (Service::isPrestashop16plus() ? 1.6 : (Service::isPrestashop15plus() ? 1.5 : 1.4)), true);
 
 		switch ($shipping_method)
 		{
@@ -244,7 +244,7 @@ class BpostShmLightboxModuleFrontController extends ModuleFrontController
 						self::$smarty->assign('module_dir', _MODULE_DIR_.$this->module->name.'/');
 						self::$smarty->assign('shipping_method', $shipping_method, true);
 
-						if (!$customer = $this->context->cart->bpack247_customer)
+						if (!$customer = $cart_bpost->bpack247_customer)
 							return false;
 
 						$customer = Tools::jsonDecode($customer, true);
@@ -324,15 +324,15 @@ class BpostShmLightboxModuleFrontController extends ModuleFrontController
 
 	private function validateStore($member)
 	{
-		$json_member = Tools::jsonEncode($member);
-
-		// Better to store the JSON string. serializing fails everytime
-		// Special NOTE: Cart.php override has changed to reflect this ('isSerializedArray' => 'isString')
+		$json_member = (string)Tools::jsonEncode($member);
 		if (!isset($member['Error']))
 			try {
-				$this->context->cart->bpack247_customer = $json_member;
-				$this->context->cart->update();
+				if (!isset($cart_bpost))
+					$cart_bpost = PsCartBpost::getByPsCartID((int)$this->context->cart->id);
 
+				$cart_bpost->bpack247_customer = $json_member;
+				$cart_bpost->update();
+				
 			} catch (Exception $e) {
 				$json_member = Tools::jsonEncode(array('Error' => $e->getMessage()));
 			}
